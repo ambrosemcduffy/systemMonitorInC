@@ -1,9 +1,9 @@
 #ifndef HELPER_FILE_H
 #define HELPER_FILE_H
 
+#include <iostream>
 #include <string>
 #include <vector>
-#include <iostream>
 
 std::vector<std::string> split(std::string, char);
 std::string slice(std::string &&, const int &&, const int &&);
