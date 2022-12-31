@@ -13,6 +13,7 @@
 #include "helperFile.h"
 #include "process.h"
 #include "processor.h"
+#include "format.h"
 
 using std::set;
 using std::size_t;
@@ -62,10 +63,10 @@ This function returns the cpu utilization
   std::string key;
 
   int value;
-  int memFree{0};
-  int memTotal{0};
-  int buffer{0};
-  int cached{0};
+  float memFree{0};
+  float memTotal{0};
+  float buffer{0};
+  float cached{0};
   file.open(path);
 
   while (getline(file, line)) {
@@ -85,9 +86,9 @@ This function returns the cpu utilization
       cached += value;
     }
   }
-  int totalUsedMemory = (memTotal - memFree);
-  int nonCached = totalUsedMemory - (buffer - cached);
-  return nonCached;
+  float totalUsedMemory = (memTotal - memFree);
+  float noncacheBuffer = (totalUsedMemory-(buffer+cached))/memTotal;
+  return noncacheBuffer;
 }
 
 // TODO: Return the operating system name
