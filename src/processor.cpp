@@ -15,11 +15,9 @@ float Processor::Utilization() {
 
   std::string line;
   getline(file, line);
-  std::vector<std::string> arrStringTime = split(line, ' ');
-  std::vector<long int> arrIntTime = convertStringTimeToInt(arrStringTime);
-  float percentage = getCpuPercentage(arrIntTime);
-  std::cout << percentage << std::endl;
-  return percentage;
+  //std::vector<std::string> arrStringTime = split(line, ' ');
+  //std::vector<long int> arrIntTime = convertStringTimeToInt(arrStringTime);
+  return getCpuPercentage();
 }
 
 
@@ -30,34 +28,29 @@ std::vector<long int> convertStringTimeToInt(
     if (_time == "cpu" || _time == " "){
         continue;
     }
-    std::cout << _time << " ";
     long int convertedTime;
     std::istringstream mystream(_time);
     mystream >> convertedTime;
     arrIntTime.push_back(convertedTime);
   }
-  std::cout << "\n";
   return arrIntTime;
 }
 
-float getCpuPercentage(const std::vector<long int> &arrIntTime) {
-  std::vector<int> prevData = getTotalTime(arrIntTime);
-  int prevTotal = prevData[0];
-  int prevIdle = prevData[1];
-  std::cout << "printing previous Data " << prevData[0] << " " << prevData[1] << std::endl;
+float getCpuPercentage() {
+  std::vector<unsigned long long int> prevData = getCpuUtilization();
+  unsigned long long int prevTotal = prevData[0];
+  unsigned long long int prevIdle = prevData[1];
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
-  std::vector<int> currentData = getTotalTime(arrIntTime);
-  std::cout << "printing current Data " << currentData[0] << " " << currentData[1] << std::endl;
-  int total = currentData[0];
-  int idle = currentData[1];
+  std::vector<unsigned long long int> currentData = getCpuUtilization();
+  unsigned long long int total = currentData[0];
+  unsigned long long int idle = currentData[1];
 
-  int completeTotal = total - prevTotal;
-  int completeIdle = idle - prevIdle;
-  std::cout << "printing complete total and idle" << std::endl;
-  std::cout << completeIdle << " " << completeTotal << std::endl;
-  return static_cast<float>((completeTotal - completeIdle) / completeTotal);
-}
+  unsigned long long int completeTotal = total - prevTotal;
+  unsigned long long int completeIdle = idle - prevIdle;
+  float _total = (float)(completeTotal - completeIdle) /completeTotal;
+  return _total;
+} 
 
 std::vector<int> getTotalTime(const std::vector< long int> &arrIntTime) {
   int Idle = arrIntTime[4] + arrIntTime[5];
@@ -76,4 +69,25 @@ void getSumOfNonIdle(int &NonIdle, const std::vector<long int> &arrIntTime) {
     }
     NonIdle += arrIntTime[i];
   }
+}
+
+std::vector<unsigned long long int> getCpuUtilization(){
+  std::ifstream file;
+  file.open("/proc/stat");
+  std::string line;
+  unsigned long long int _total{0};
+  unsigned long long int _idleTime{0};
+  while (getline(file, line)){
+    std::istringstream mystream(line);
+    std::string throwaway;
+    mystream >> throwaway;
+    unsigned long long int user, nice, system, idle, iowait, irq, softIrq, steal, guest, guestNice;
+    mystream >> user >> nice >> system >> idle >> iowait >> irq >> softIrq >> steal >> guest >> guestNice;
+    unsigned long long int nonIdleTime = user + nice + system + irq + softIrq + steal;
+    unsigned long long int idleTime = idle + iowait;
+    _idleTime += idleTime;
+    _total += idleTime + nonIdleTime;
+    break;
+  }
+  return {_total, _idleTime};
 }

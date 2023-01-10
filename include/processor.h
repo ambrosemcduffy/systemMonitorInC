@@ -5,10 +5,10 @@
 #include <string>
 
 std::vector<long int> convertStringTimeToInt(const std::vector<std::string> &);
-float getCpuPercentage(const std::vector<long int> &);
+float getCpuPercentage();
 std::vector<int> getTotalTime(const std::vector<long int> &);
 void getSumOfNonIdle(int &, const std::vector<long int> &);
-
+std::vector<unsigned long long int> getCpuUtilization();
 
 
 
