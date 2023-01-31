@@ -21,7 +21,36 @@ void Process::setPid(int pid){
 int Process::Pid() {return this->_pid;}
 
 // TODO: Return this process's CPU utilization
-float Process::CpuUtilization() { return 0.0; }
+float Process::CpuUtilization() {
+  int pid = this->Pid();
+  std::string path = "/proc/" + std::to_string(pid) + "/stat";
+  std::ifstream file;
+  file.open(path);
+  std::string line;
+  std::vector<std::string>  _arr;
+  while(getline(file, line)){
+    _arr = split(line, ' ');
+  }
+
+  long _jiffie;
+  int cnt{0};
+  std::vector<long> _jiffies;
+  for (std::string jiffie:_arr){
+    std::istringstream mystream(jiffie);
+    if(cnt == 14 || cnt == 22){
+      mystream >> _jiffie;
+      _jiffies.push_back(_jiffie);
+    }
+    cnt ++;
+  }
+
+  int tempHz = 1000000;
+  long totalTime = _jiffies[0] + _jiffies[1];
+  totalTime = totalTime + _jiffies[3] + _jiffies[4];
+  long seconds = UpTime() - (_jiffies[5]/tempHz);
+  long cpuUsage = 100 * ((totalTime/tempHz/seconds));
+  return cpuUsage;
+}
 
 // TODO: Return the command that generated this process
 string Process::Command() { 
