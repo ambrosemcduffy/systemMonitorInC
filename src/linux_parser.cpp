@@ -1,5 +1,6 @@
 #include "linux_parser.h"
 #include "helperFile.h"
+#include "format.h"
 
 #include <dirent.h>
 #include <unistd.h>
@@ -184,11 +185,39 @@ int LinuxParser::RunningProcesses() {
 
 // TODO: Read and return the command associated with a process
 // REMOVE: [[maybe_unused]] once you define the function
-string LinuxParser::Command(int pid [[maybe_unused]]) { return string(); }
+string LinuxParser::Command(int pid) {
+  std::string path = "/proc/" + std::to_string(pid) + "/cmdline";
+  std::ifstream file;
+  file.open(path);
+  std::string line;
+  while (getline(file, line)){
+    return line;
+  }
+  return line;
+
+}
 
 // TODO: Read and return the memory used by a process
 // REMOVE: [[maybe_unused]] once you define the function
-string LinuxParser::Ram(int pid [[maybe_unused]]) { return string(); }
+string LinuxParser::Ram(int pid) {
+  std::string path = "/proc/" + to_string(pid) + "/status";
+  std::ifstream file;
+  file.open(path);
+  std::string line;
+  std::string value;
+  std::string key;
+  std::string bytes;
+  while (getline(file, line)){
+    std::istringstream mystream(line);
+    mystream >> key >> value >> bytes;
+    if (key == "VmSize:"){     
+      int ram = std::stoi(value) * 1000;
+      value = std::to_string(ram); 
+      return value;
+    }
+  }
+  return value;
+}
 
 // TODO: Read and return the user ID associated with a process
 // REMOVE: [[maybe_unused]] once you define the function
@@ -233,4 +262,27 @@ string LinuxParser::User(int pid) {
 
 // TODO: Read and return the uptime of a process
 // REMOVE: [[maybe_unused]] once you define the function
-long LinuxParser::UpTime(int pid [[maybe_unused]]) { return 0; }
+long LinuxParser::UpTime(int pid) {
+  std::string path = "/proc/" + std::to_string(pid) + "/stat/";
+  std::ifstream file;
+  file.open(path);
+  std::string line;
+  int cnt = 0;
+  long value;
+  long newVal;
+  while (getline(file, line)){
+    std::vector<std::string> _arr = split(line, ' ');
+    for (auto element:_arr){
+      if (cnt == 22){
+        std::istringstream mystream(_arr[cnt]);
+        mystream >> value;
+        std::string _arr = Format::ElapsedTime(value/sysconf(value));
+        std::stringstream newstream(_arr);
+        newstream >> newVal;
+        return value;
+      }
+      cnt += 1;
+    }
+  }
+  return value;
+}
