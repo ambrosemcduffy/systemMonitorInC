@@ -23,32 +23,37 @@ int Process::Pid() {return this->_pid;}
 // TODO: Return this process's CPU utilization
 float Process::CpuUtilization() {
   int pid = this->Pid();
-  std::string path = "/proc/" + std::to_string(pid) + "/stat";
-  std::ifstream file;
-  file.open(path);
+  std::string path = LinuxParser::kProcDirectory + std::to_string(pid) + LinuxParser::kStatFilename;
+  std::ifstream file(path);
   std::string line;
-  std::vector<std::string>  _arr;
-  while(getline(file, line)){
-    _arr = split(line, ' ');
-  }
-
-  long _jiffie;
-  int cnt{0};
-  std::vector<long> _jiffies;
-  for (std::string jiffie:_arr){
-    std::istringstream mystream(jiffie);
-    if(cnt == 14 || cnt == 22){
-      mystream >> _jiffie;
-      _jiffies.push_back(_jiffie);
+  vector<string> values;
+  while (getline(file, line)){
+    vector<string> elements = split(line, ' ');
+    for (auto element:elements){
+      values.push_back(element);
     }
-    cnt ++;
+  }
+  vector<string> uptimeElements;
+  string utime = values[15];
+  string stime = values[16];
+  string cutime = values[17];
+  string cstime = values[18];
+  string startTime = values[23];
+  string uptime;
+  string newLine;
+  std::ifstream uptimeFile("/proc/uptime");
+
+  while(getline(uptimeFile, line)){
+    vector<string> uptimeElements = split(line, ' ');
+    uptime = uptimeElements[0];
   }
 
-  int tempHz = 1000000;
-  long totalTime = _jiffies[0] + _jiffies[1];
-  totalTime = totalTime + _jiffies[3] + _jiffies[4];
-  long seconds = UpTime() - (_jiffies[5]/tempHz);
-  long cpuUsage = 100 * ((totalTime/tempHz/seconds));
+  long hertz = sysconf(_SC_CLK_TCK);
+  float _uptime = stof(uptime);
+  long totalTime = stol(utime) + stol(stime);
+  totalTime = totalTime + stol(cutime) + stol(cstime);
+  float secounds = _uptime - (stof(startTime)/hertz);
+  float cpuUsage = (float)100 * (float)((totalTime/hertz/secounds));
   return cpuUsage;
 }
 
@@ -77,8 +82,7 @@ long int Process::UpTime() {
   return LinuxParser::UpTime(pid);
 }
 
-// TODO: Overload the "less than" comparison operator for Process objects
-// REMOVE: [[maybe_unused]] once you define the function
-//bool Process::operator<(Process const& a) const {
-//  return true;
-//}
+
+bool Process::operator<(Process & a) {
+  return a.CpuUtilization() < CpuUtilization();
+}

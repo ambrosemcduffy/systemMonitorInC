@@ -266,11 +266,13 @@ long LinuxParser::UpTime(int pid) {
   std::ifstream file(path);
   std::string line;
   std::vector<std::string> _arr;
-  if (getline(file, line)){
-    std::vector<std::string> fields = split(line, ' ');
-    long startTime = std::stol(fields[21]);
-    long secs = (long)startTime / sysconf(_SC_CLK_TCK);
-    return secs;
+  if (file){
+    while (getline(file, line)){
+      std::vector<std::string> fields = split(line, ' ');
+      long startTime = std::stol(fields[21]);
+      long secs = (long)startTime / sysconf(_SC_CLK_TCK);
+      return secs;
     }
+  }
   return -1.0;
 }

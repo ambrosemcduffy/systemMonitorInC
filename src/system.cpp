@@ -37,6 +37,7 @@ vector<Process>& System::Processes() {
     Process currentProcess;
     currentProcess.setPid(pid);
     this->processes_.push_back(currentProcess);
+    std::sort(processes_.begin(),processes_.end());
   }
   return processes_;
 }

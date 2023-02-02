@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-std::vector<std::string> split(std::string, char);
+std::vector<std::string> split(std::string &, char) ;
 std::string slice(std::string &&, const int &&, const int &&);
 void printArray(const std::vector<std::string> &);
 

@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-std::vector<std::string> split(std::string token, char delimiter) {
+std::vector<std::string> split(std::string &token, char delimiter) {
   std::vector<std::string> tokens;
   std::istringstream mystream(token);
   while (std::getline(mystream, token, delimiter)) {
